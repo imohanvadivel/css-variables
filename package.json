@@ -1,0 +1,31 @@
+{
+  "name": "css-variables",
+  "type": "module",
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "watch_ui": "export NODE_ENV=DEV && vite build",
+    "build_ui": "export NODE_ENV=PROD && vite build",
+    "watch_code": "esbuild src/code.ts --bundle --target=es2015 --watch --outdir=dist",
+    "build_code": "esbuild src/code.ts --bundle --target=es2015 --minify --outdir=dist",
+    "watch": "npm run watch_ui & npm run watch_code",
+    "build": "npm run build_ui & npm run build_code"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.90.0",
+    "@sveltejs/vite-plugin-svelte": "^2.4.1",
+    "@tsconfig/svelte": "^4.0.1",
+    "svelte": "^4.2.12",
+    "svelte-check": "^3.4.3",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.3.9",
+    "vite-plugin-singlefile": "^0.13.5",
+    "vite-svg-loader": "^4.0.0"
+  },
+  "dependencies": {
+    "colorjs.io": "^0.4.5",
+    "figblocks": "^0.0.2",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1"
+  }
+}
