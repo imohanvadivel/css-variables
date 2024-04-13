@@ -1,31 +1,48 @@
 <script lang="ts">
     import { parseCSS, postFigma } from "$lib/util.ts";
     import { Button, Label, Radio, Input, Select } from "figblocks";
-    import { localCollections } from "$lib/store.ts";
-
+    // import { localCollections } from "$lib/store.ts";
+    import { onMount } from "svelte";
     import Icon from "$lib/import.svg";
     export let variableData;
     export let fileName: string;
     export let variableCount: number;
     export let fileImported = false;
+    let localCollections = [];
     let collectionMenu = [];
-
-    $: {
-        collectionMenu = $localCollections.map((e, i) => ({
-            label: e.name,
-            value: e.id,
-        }));
-    }
-
     let modeMenu = [];
+
+    onMount(() => {
+        postFigma({ type: "GET_LOCAL_COLLECTIONS" });
+
+        var fun = (event) => {
+            let message = event.data.pluginMessage;
+            if (message && message.type === "LOCAL_COLLECTIONS") {
+                localCollections = message.data;
+                collectionMenu = message.data.map((e, i) => {
+                    return {
+                        label: e.name,
+                        value: e.id,
+                        selected: i === 0,
+                    };
+                });
+                modeMenu = message.data[0].modes.map((e, i) => ({ label: e.name, value: e.modeId, selected: i === 0 }));
+            }
+        };
+
+        window.addEventListener("message", fun);
+
+        return () => {
+            window.removeEventListener("message", fun);
+        };
+    });
 
     let collectionValue;
     let modeValue;
 
     function handleMenuChange(event: CustomEvent) {
-        let id = event.detail.value;
-        let collection = $localCollections.find((e) => e.id === id);
-        modeMenu = collection.modes.map((e, i) => ({ label: e.name, value: e.modeId }));
+        let selectedCollection = localCollections.find((e) => e.id === event.detail.value);
+        modeMenu = selectedCollection.modes.map((e, i) => ({ label: e.name, value: e.modeId, selected: i === 0 }));
     }
 
     let inputEl;
@@ -122,7 +139,7 @@
             <span class="var-cnt">{`${variableCount} ${variableCount === 1 ? "variable" : "variables"}`}</span>
         </div>
 
-        {#if $localCollections.length > 0}
+        {#if localCollections.length > 0}
             <div class="field-cnt">
                 <Label>Import as</Label>
                 <Radio bind:group={importType} name="importType" value="newCollection">New collection</Radio>
@@ -142,12 +159,17 @@
         {:else}
             <div class="field-cnt">
                 <Label>Collection</Label>
-                <Select on:change={handleMenuChange} menuItems={collectionMenu} bind:value={collectionValue} />
+                <Select
+                    on:change={handleMenuChange}
+                    bind:menuItems={collectionMenu}
+                    bind:value={collectionValue}
+                    placeholder="Choose a collection"
+                />
             </div>
 
             <div class="field-cnt">
                 <Label>Mode</Label>
-                <Select menuItems={modeMenu} bind:value={modeValue} />
+                <Select bind:menuItems={modeMenu} bind:value={modeValue} placeholder="Choose a mode" />
             </div>
         {/if}
         <div class="footer">

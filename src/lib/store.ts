@@ -18,6 +18,7 @@ export const localCollections = readable<LocalCollectionItem[]>([], (set) => {
 
     var fun = (event) => {
         let message = event.data.pluginMessage;
+        console.log("localCollections", message);
         if (message && message.type === "LOCAL_COLLECTIONS") set(message.data);
     };
 
@@ -28,25 +29,32 @@ export const localCollections = readable<LocalCollectionItem[]>([], (set) => {
     };
 });
 
+function processAndSaveZip(data: any) {
+    let { processedData, config } = data;
+
+    // Converting processed data to CSS
+    processedData = processedData.map((d) => {
+        let css = convertToCss(d.variableData, config);
+        return { ...d, css };
+    });
+
+    generateZip(processedData)
+        .then((res) => {
+            postFigma({ type: "NOTIFY", data: "Saving your file..." });
+        })
+        .catch((err) => {
+            console.log(err);
+            postFigma({ type: "NOTIFY", data: "Something went worng, unable to save the file" });
+        });
+}
+
 window.addEventListener("message", (event) => {
     let message = event.data.pluginMessage;
-    if (message && message.type === "PROCESSED_DATA") {
-        let { processedData, config } = message.data;
-        console.log(message);
+    if (!message) return;
 
-        // Converting processed data to CSS
-        processedData = processedData.map((d) => {
-            let css = convertToCss(d.variableData, config);
-            return { ...d, css };
-        });
-
-        generateZip(processedData)
-            .then((res) => {
-                postFigma({ type: "NOTIFY", data: "Saving your file..." });
-            })
-            .catch((err) => {
-                console.log(err);
-                postFigma({ type: "NOTIFY", data: "Something went worng, unable to save the file" });
-            });
+    switch (message.type) {
+        case "PROCESSED_DATA":
+            processAndSaveZip(message.data);
+            break;
     }
 });
