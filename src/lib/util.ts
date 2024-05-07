@@ -27,12 +27,16 @@ export function convertToCss(variableData: VariableData[], config: Config) {
     let head = `:root {\n`;
     let foot = `\n}`;
 
+    console.log({ variableData, config });
+
     let bodyData = variableData.map((data) => {
         let key = CSS.escape(data.key);
         let value = data.cssValue;
 
-        if (config.preserveAlias && data.alias) {
+        if (config.preserveAlias && data.alias && config.ignoreCodeSyntax) {
             value = `var(--${CSS.escape(data.value)})`;
+        } else if (config.preserveAlias && data.alias && !config.ignoreCodeSyntax) {
+            value = `var(${CSS.escape(data.value)})`;
         }
 
         if (!config.ignoreCodeSyntax && data.webSyntax) {

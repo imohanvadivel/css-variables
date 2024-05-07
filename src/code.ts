@@ -89,6 +89,10 @@ function processExports(exports: string[]) {
                 if (config.preserveAlias) {
                     let parentVariable = figma.variables.getVariableById(value["id"]);
                     value = parentVariable.name;
+                    // Case: if codeSyntax is true and preserveAlias is true
+                    // then we should use the webSyntax of the parent variable
+                    if (!config.ignoreCodeSyntax && parentVariable.codeSyntax && parentVariable.codeSyntax.WEB)
+                        value = parentVariable.codeSyntax.WEB;
                 } else {
                     value = resolveAliase(value["id"]);
                 }
